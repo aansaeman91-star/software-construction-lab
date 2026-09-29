@@ -1,18 +1,46 @@
-import pytest
+def calculate_items_subtotal(order: dict) -> float:
+    subtotal = 0.0
 
-from src.orders import calculate_order_total
+    for item in order["items"]:
+        price = item["price"]
+        quantity = item["qty"]
+
+        if price <= 0:
+            continue
+        if quantity <= 0:
+            continue
+
+        subtotal += price * quantity
+
+    return subtotal
 
 
-def test_calculate_order_total():
-    sample_order = {
-        "items": [
-            {"price": 25.0, "qty": 2},
-            {"price": 40.0, "qty": 1},
-            {"price": -5.0, "qty": 3},
-        ],
-        "member": True,
-        "country": "PK",
-    }
+def calculate_member_discount(subtotal: float, is_member: bool) -> float:
+    if not is_member:
+        return 0.0
 
-    assert calculate_order_total(sample_order) == pytest.approx(86.0)
+    if subtotal > 100:
+        return subtotal * 0.2
 
+    if subtotal > 50:
+        return subtotal * 0.1
+
+    return 0.0
+
+
+def calculate_shipping_cost(country: str) -> float:
+    if country == "PK":
+        return 5.0
+
+    if country == "US":
+        return 15.0
+
+    return 25.0
+
+
+def calculate_order_total(order: dict) -> float:
+    subtotal = calculate_items_subtotal(order)
+    discount = calculate_member_discount(subtotal, order["member"])
+    shipping = calculate_shipping_cost(order["country"])
+
+    return subtotal - discount + shipping
